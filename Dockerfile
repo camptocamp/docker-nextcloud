@@ -1,6 +1,6 @@
 FROM nextcloud:13.0.7-apache
 
-COPY config/s3.config.php /usr/src/nextcloud/config/s3.config.php
+COPY config/* /usr/src/nextcloud/config/
 
 ENV NEXTCLOUD_S3_BUCKET="" \
     NEXTCLOUD_S3_KEY="" \
@@ -8,7 +8,8 @@ ENV NEXTCLOUD_S3_BUCKET="" \
     NEXTCLOUD_S3_SERVER="" \
     NEXTCLOUD_S3_PORT=443 \
     NEXTCLOUD_S3_USE_SSL=true \
-    NEXTCLOUD_S3_REGION=""
+    NEXTCLOUD_S3_REGION="" \
+    NEXTCLOUD_AUTH_BRUTEFORCE=false
 
 ENTRYPOINT ["/entrypoint.sh"]
 CMD ["apache2-foreground"]
