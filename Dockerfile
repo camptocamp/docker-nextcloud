@@ -1,4 +1,4 @@
-FROM nextcloud:13.0.7-apache
+FROM nextcloud:14.0.3-apache
 
 COPY config/* /usr/src/nextcloud/config/
 
