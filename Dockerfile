@@ -44,7 +44,9 @@ RUN a2dissite 000-default && \
     chmod -R g+w ${APACHE_CONFDIR} ${APACHE_RUN_DIR} ${APACHE_LOCK_DIR} ${APACHE_LOG_DIR} /var/log && \
     chgrp -R root ${APACHE_LOG_DIR}
 
-ENV LANG=C.UTF-8
+ENV LANG=C.UTF-8 \
+    REDIS_COMMENT=# \
+    REDIS_DB=0
 EXPOSE 8080
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["apache2", "-DFOREGROUND"]

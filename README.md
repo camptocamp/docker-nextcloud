@@ -25,3 +25,7 @@ You must define those environment variables:
 * SMTP_FROM_USER
 * SMTP_FROM_DOMAIN
 
+If you want to use redis as cache, you must define those:
+* REDIS_COMMENT=" "
+* REDIS_HOST=your.host.name
+* REDIS_DB=0
