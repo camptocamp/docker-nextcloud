@@ -9,7 +9,7 @@ RUN apt update && \
     rm -r /var/lib/apt/lists/*
 
 # nextcloud specific stuff
-ENV NEXTCLOUD_VERSION=16 \
+ENV NEXTCLOUD_VERSION=17 \
     DOLLAR=$
 RUN curl https://download.nextcloud.com/server/releases/latest-${NEXTCLOUD_VERSION}.zip > /tmp/nextcloud.zip && \
     cd /var/www && \
