@@ -4,7 +4,7 @@ RUN apt update && \
     DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y \
         gettext-base apache2 libaprutil1-dbd-mysql libapache2-mod-php php-gd php-sqlite3 php-json php-intl \
         php-xml php-mbstring php-zip php-pgsql php-mysql ca-certificates curl php-curl php-imagick php-redis \
-        unzip && \
+        redis-cli unzip && \
     apt clean && \
     rm -r /var/lib/apt/lists/*
 
