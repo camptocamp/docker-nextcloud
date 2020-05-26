@@ -27,7 +27,8 @@ ENV APACHE_CONFDIR=/etc/apache2 \
     APACHE_PID_FILE=/var/run/apache2/apache2.pid \
     APACHE_LOCK_DIR=/var/lock/apache2 \
     APACHE_LOG_DIR=/var/log/apache2 \
-    LANG=C
+    LANG=C \
+    LOG_LEVEL=2
 
 RUN a2dissite 000-default && \
     a2ensite 000-nextcloud.conf && \
