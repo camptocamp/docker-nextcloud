@@ -1,0 +1,54 @@
+#!/bin/bash
+
+check_config() {
+   if [ -n "${NEXTCLOUD_TRUSTED_DOMAINS+x}" ]; then
+       echo "setting trusted domains…"
+       NC_TRUSTED_DOMAIN_IDX=1
+       for DOMAIN in $NEXTCLOUD_TRUSTED_DOMAINS ; do
+           DOMAIN=$(echo "$DOMAIN" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+           php occ config:system:set trusted_domains $NC_TRUSTED_DOMAIN_IDX --value=$DOMAIN
+           NC_TRUSTED_DOMAIN_IDX=$(($NC_TRUSTED_DOMAIN_IDX+1))
+       done
+   fi
+}
+
+install() {
+    if [ -n "${NEXTCLOUD_ADMIN_USER+x}" ] && [ -n "${NEXTCLOUD_ADMIN_PASSWORD+x}" ]; then
+        # shellcheck disable=SC2016
+        install_options="-n --admin-user $NEXTCLOUD_ADMIN_USER --admin-pass $NEXTCLOUD_ADMIN_PASSWORD"
+        if [ -n "${NEXTCLOUD_DATA_DIR+x}" ]; then
+            # shellcheck disable=SC2016
+            install_options=$install_options" --data-dir $NEXTCLOUD_DATA_DIR"
+        fi
+
+
+        echo "Installing with PostgreSQL database"
+        # shellcheck disable=SC2016
+        install_options=$install_options" --database pgsql --database-name $POSTGRES_DB --database-user $POSTGRES_USER --database-pass $POSTGRES_PASSWORD --database-host $POSTGRES_HOST"
+
+       echo "starting nextcloud installation via occ"
+       max_retries=10
+       try=0
+       until php occ maintenance:install $install_options || [ "$try" -gt "$max_retries" ]
+       do
+           echo "retrying install..."
+           try=$((try+1))
+           sleep 10s
+       done
+       if [ "$try" -gt "$max_retries" ]; then
+           echo "installing of nextcloud failed!"
+           exit 1
+       fi
+    fi
+}
+
+if ! php occ upgrade; then
+    echo "Installing nextcloud"
+    install
+else
+    echo "Nextcloud already installed, skipping"
+fi
+check_config
+# config folder is erased after install ¯\_(ツ)_/¯. Copying the extra config 
+# (copied at the image build time) in the right place after the install process.
+cp /config/* /var/www/html/config/

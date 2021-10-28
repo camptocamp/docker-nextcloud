@@ -1,0 +1,5 @@
+#!/bin/bash
+IFS="," read -r -a extension <<< "$NEXTCLOUD_EXTENSIONS"
+for ext in "${extension[@]}"; do
+    php occ app:install "$ext"
+done

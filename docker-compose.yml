@@ -1,0 +1,105 @@
+# example docker-compose to test this image
+version: "3.8"
+services:
+  traefik:
+    image: traefik:v2.5
+    command:
+      #- "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--entrypoints.web.http.redirections.entrypoint.permanent=true"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "certs:/etc/ssl/traefik"
+  nextcloud:
+    build: .
+    environment:
+      POSTGRES_DB: nextcloud
+      POSTGRES_USER: nextcloud
+      POSTGRES_PASSWORD: nextcloud
+      POSTGRES_HOST: db
+      NEXTCLOUD_TRUSTED_DOMAINS: nextcloud-127-0-0-1.traefik.me
+      NEXTCLOUD_ADMIN_USER: admin
+      NEXTCLOUD_ADMIN_PASSWORD: admin
+      NEXTCLOUD_EXTENSIONS: groupfolders
+      OBJECTSTORE_S3_BUCKET: nextcloud
+      OBJECTSTORE_S3_HOST: minio
+      OBJECTSTORE_S3_KEY: "AKIAIOSFODNN7EXAMPLE"
+      OBJECTSTORE_S3_SECRET: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+      OBJECTSTORE_S3_PORT: "9000"
+      OBJECTSTORE_S3_SSL: "false"
+      OBJECTSTORE_S3_USEPATH_STYLE: "true"
+      SMTP_HOST: smtp
+      SMTP_PORT: 25
+      MAIL_DOMAIN: "example.com"
+      MAIL_FROM_ADDRESS: "contact"
+      REDIS_HOST: redis
+    labels:
+      - "traefik.enable=true"
+      # no certificate generation require, nextcloud-127-0-0-1.traefik.me resolve to 127.0.01
+      - "traefik.http.routers.nextcloud.tls=true"
+      - "traefik.http.routers.nextcloud.rule=Host(`nextcloud-127-0-0-1.traefik.me`)"
+      - "traefik.http.services.nextcloud.loadbalancer.server.port=8080"
+  redis:
+    image: redis:6
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: nextcloud
+      POSTGRES_USER: nextcloud
+      POSTGRES_PASSWORD: nextcloud
+    volumes:
+      - "postgres_data:/var/lib/postgres/data"
+
+  minio:
+    image: quay.io/minio/minio
+    command: minio server --console-address :5050 /data
+    ports:
+      - "5050:5050"
+    environment:
+      MINIO_ROOT_USER: AKIAIOSFODNN7EXAMPLE
+      MINIO_ROOT_PASSWORD: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+    volumes:
+      - "minio_data:/data"
+  smtp:
+    image: camptocamp/smtp-sink:latest
+    volumes:
+      - smtp_maildir:/home/smtp/Maildir/
+    restart: always
+
+  courier-imap:
+    image: camptocamp/courier-imap:latest
+    volumes:
+      - smtp_maildir:/home/smtp/Maildir/
+    restart: always
+
+  webmail:
+    image: camptocamp/sqwebmail:latest
+    environment:
+      - IMAP_HOSTNAME=courier-imap
+      - SMTP_HOSTNAME=smtp
+    volumes:
+      - smtp_maildir:/home/smtp/Maildir/
+    ports:
+      - "8081:80"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.webmail.tls=true"
+      - "traefik.http.routers.webmail.rule=Host(`webmail-127-0-0-1.traefik.me`)"
+    restart: always
+
+volumes:
+  minio_data:
+  postgres_data:
+  smtp_maildir:
+  certs:
+
