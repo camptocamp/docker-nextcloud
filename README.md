@@ -1,10 +1,11 @@
 # Next cloud docker image
 
-This image works on OpenShift (doesn't run as root).
+This image works on OpenShift (can run with arbitrary user).
 
 It works with a postgresql database and can use S3 as primary storage.
 
-## Configuration:
+## Configuration
+
 Environment variable available, trying to stick with the default provided at [nextcloud/docker](https://github.com/nextcloud/docker).
 
 * `POSTGRES_DB`
